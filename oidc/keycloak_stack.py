@@ -42,18 +42,6 @@ class KeycloakStack(core.Stack):
             generate_secret_string=secretsmanager.SecretStringGenerator(exclude_punctuation=True)
         )
 
-        keycloak_admin_username = secretsmanager.Secret(
-            self, 'KeycloakAdminUsername',
-            description='Keycloak Admin Name',
-            generate_secret_string=secretsmanager.SecretStringGenerator(exclude_punctuation=True)
-        )
-
-        keycloak_admin_secret = secretsmanager.Secret(
-            self, 'KeycloakAdminSecret',
-            description='Keycloak Admin Password',
-            generate_secret_string=secretsmanager.SecretStringGenerator(exclude_punctuation=True)
-        )
-
         keycloak_database_cluster = rds.DatabaseCluster(
             self, 'KeycloakDatabaseCluster',
             engine= rds.DatabaseClusterEngine.AURORA,
@@ -91,7 +79,7 @@ class KeycloakStack(core.Stack):
             cluster=cluster,
 
             task_image_options=ecs_patterns.ApplicationLoadBalancedTaskImageOptions(
-                image=ecs.ContainerImage.from_registry('jboss/keycloak:9.0.3'),
+                image=ecs.ContainerImage.from_asset('keycloak'),
                 container_port=8080,
                 enable_logging=True,
                 task_role=keycloak_task_role,
@@ -103,16 +91,13 @@ class KeycloakStack(core.Stack):
 
                 secrets={
                     'DB_PASSWORD': ecs.Secret.from_secrets_manager(keycloak_database_secret),
-                    'KEYCLOAK_PASSWORD': ecs.Secret.from_secrets_manager(keycloak_admin_secret),
                 },
-                
                 environment={
                     'DB_VENDOR': 'mysql',
                     'DB_USER': keycloak_database_user,
                     'DB_ADDR': keycloak_database_cluster.cluster_endpoint.hostname,
                     'DB_DATABASE': keycloak_database_name,
                     # 'KEYCLOAK_LOGLEVEL': 'DEBUG',
-                    'KEYCLOAK_USER': 'admin',
                     'PROXY_ADDRESS_FORWARDING': 'true',
                 },
             ),
@@ -143,54 +128,3 @@ class KeycloakStack(core.Stack):
 
         keycloak_database_cluster.connections.allow_default_port_from(keycloak_service.service, 'From Keycloak Fargate Service')
 
-        core.CfnOutput(
-            self, 'Output',
-            value=keycloak_service.load_balancer.load_balancer_dns_name
-        
-        )
-        # keycloak_task_definition = ecs.FargateTaskDefinition( 
-        #     self, 'KeycloakTaskDefinition',
-        #     cpu=256,
-        #     memory_limit_mib=512,
-        #     task_role=keycloak_task_role,            
-        # )
-
-        # keycloak_container = keycloak_task_definition.add_container(
-        #     'keycloak_container',
-        #     image=ecs.ContainerImage.from_registry('jboss/keycloak:9.0.3'),
-        #     secrets={
-        #         'DB_PASSWORD': ecs.Secret.from_secrets_manager(keycloak_database_secret),
-        #         'KEYCLOAK_PASSWORD': ecs.Secret.from_secrets_manager(keycloak_admin_secret),
-        #         'KEYCLOAK_USER': ecs.Secret.from_secrets_manager(keycloak_admin_username),
-        #     },
-        #     environment={
-        #         'DB_VENDOR': 'mysql',
-        #         'DB_USER': keycloak_database_user,
-        #         'DB_ADDR': keycloak_database_cluster.cluster_endpoint.hostname,
-        #         'DB_DATABASE': keycloak_database_name,
-        #         'PROXY_ADDRESS_FORWARDING': 'true',
-        #     },
-        # )
-        # keycloak_container.add_port_mappings(ecs.PortMapping(8080,80))
-
-        # keycloak_fargate_service = ecs.FargateService(
-        #     self, 'KeycloakFargateService',
-        #     cluster=cluster,
-        #     task_definition=keycloak_task_definition,
-        #     desired_count=1,
-        # )
-        
-        # keycloak_fargate_service.connections.allow_from(load_balancer, ec2.Port.tcp(80))
-        # load_balancer.connections.allow_to(keycloak_fargate_service, ec2.Port.tcp(80))
-
-        # elbv2.ApplicationTargetGroup(
-        #     self, 'KeycloakFargateServiceTargetGroup',
-        #     targets=[ keycloak_fargate_service ],
-        #     protocol=elbv2.ApplicationProtocol.HTTP,
-        #     vpc=vpc
-        # )
-
-        # load_balancer.co
-
-
-        
