@@ -31,13 +31,13 @@ KeycloakStack(
 ApplicationStack(
     app, 'application', 
 
-    domain_name= os.environ['CDK_APP_DOMAIN'],
+    domain_name= os.environ.get('CDK_APP_DOMAIN'),
 
-    identity_provider_client_id= os.environ['CDK_APP_IDP_CLIENT_ID', 'my_app'],
-    identity_provider_client_secret=os.environ['CDK_APP_IDP_CLIENT_SECRET'],
-    identity_provider_client_url=os.environ['CDK_APP_IDP_CLIENT_URL'],
-    identity_provider_realm=os.environ['CDK_APP_IDP_CLIENT_REALM'],
-    identity_provider_scope=os.environ['CDK_APP_IDP_CLIENT_SCOPE', 'openid'],
+    identity_provider_client_id= os.environ.get('CDK_APP_IDP_CLIENT_ID', 'my_app'),
+    identity_provider_client_secret=os.environ.get('CDK_APP_IDP_CLIENT_SECRET'),
+    identity_provider_client_url=os.environ.get('CDK_APP_IDP_CLIENT_URL'),
+    identity_provider_realm=os.environ.get('CDK_APP_IDP_CLIENT_REALM'),
+    identity_provider_scope=os.environ.get('CDK_APP_IDP_CLIENT_SCOPE', 'openid'),
 
     vpc=service.vpc, 
     cluster=service.cluster, 
