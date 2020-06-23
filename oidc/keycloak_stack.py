@@ -18,6 +18,7 @@ class KeycloakStack(core.Stack):
         self, 
         scope: core.Construct, 
         id: str, 
+        keycloak_domain: str,
         vpc: ec2.IVpc = None, 
         cluster: ecs.ICluster = None, 
         load_balancer: elbv2.IApplicationLoadBalancer = None, 
@@ -75,13 +76,13 @@ class KeycloakStack(core.Stack):
 
         keycloak_hosted_zone = route53.HostedZone.from_lookup(
             self, 'KeycloakHostedZone',
-            domain_name='florianpawlik.com'
+            domain_name=keycloak_domain
         )
 
         keycloak_certificate = acm.DnsValidatedCertificate(
             self, 'KeycloakCertificate',
             hosted_zone=keycloak_hosted_zone,
-            domain_name='keycloak.florianpawlik.com'
+            domain_name='keycloak.' + keycloak_domain
         )
 
         keycloak_service = ecs_patterns.ApplicationLoadBalancedFargateService(
@@ -120,7 +121,7 @@ class KeycloakStack(core.Stack):
             cpu=256,
             desired_count=1,
             public_load_balancer=True,
-            domain_name= 'keycloak.florianpawlik.com',
+            domain_name= 'keycloak.' + keycloak_domain,
             domain_zone= keycloak_hosted_zone,
             protocol=elbv2.ApplicationProtocol.HTTPS,
         )

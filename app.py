@@ -25,13 +25,14 @@ KeycloakStack(
     cluster=service.cluster, 
     log_group=service.log_group,
     
+    keycloak_domain = os.environ.get('CDK_KEYCLOAK_HOSTED_ZONE'),
     env=environment
 )
 
 ApplicationStack(
     app, 'application', 
 
-    domain_name= os.environ.get('CDK_APP_DOMAIN'),
+    domain_name= os.environ.get('CDK_APP_HOSTED_ZONE'),
 
     identity_provider_client_id= os.environ.get('CDK_APP_IDP_CLIENT_ID', 'my_app'),
     identity_provider_client_secret=os.environ.get('CDK_APP_IDP_CLIENT_SECRET'),
